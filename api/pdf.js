@@ -1,37 +1,27 @@
-import { chromium } from "playwright-chromium";
+import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer-core";
 
-/**
- * Vercel Serverless Function.
- * POST JSON: { html: "<!doctype html>..."}
- * → returns application/pdf
- */
 export default async function handler(req, res) {
   try {
-    if (req.method !== "POST") {
-      res.status(405).json({ error: "Method Not Allowed" });
-      return;
-    }
+    if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
 
     const { html } = req.body || {};
-    if (!html || typeof html !== "string") {
-      res.status(400).json({ error: "Missing `html` string in body" });
-      return;
-    }
+    if (!html || typeof html !== "string") return res.status(400).json({ error: "Missing `html`" });
 
-    const browser = await chromium.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage({ viewport: { width: 1240, height: 1754 } });
-    await page.setContent(html, { waitUntil: "networkidle" });
-
+    await page.setContent(html, { waitUntil: "networkidle0" });
     const pdf = await page.pdf({
       format: "A4",
-      margin: { top: "12mm", right: "12mm", bottom: "16mm", left: "12mm" },
-      printBackground: true
+      printBackground: true,
+      margin: { top: "12mm", right: "12mm", bottom: "16mm", left: "12mm" }
     });
-
     await browser.close();
 
     res.setHeader("Content-Type", "application/pdf");

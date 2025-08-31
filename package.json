@@ -1,0 +1,8 @@
+{
+  "name": "html-to-pdf",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "playwright-chromium": "^1.47.0"
+  }
+}
